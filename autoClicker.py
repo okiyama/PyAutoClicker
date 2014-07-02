@@ -59,6 +59,7 @@ def main():
     initialDelay = getFloat("How long would you like the delay before starting the clicking so you can change windows?(in seconds) ")
     mouseDelay = getFloat("How much delay would you like between clicks?(in milliseconds) ")
     clicker = AutoClicker(givenDelay=mouseDelay)
+    time.sleep(initialDelay)
     clicker.autoClick()
     clicker.run()
 
