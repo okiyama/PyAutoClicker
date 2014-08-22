@@ -5,7 +5,7 @@ Very useful for a number of online games.
 
 ==== Installation ====
 
-The only dependencies are on [PyUserInput](https://github.com/SavinaRoja/PyUserInput) and Tkinter. For Linux, this is as simple as 
+The only dependencies are on [PyUserInput](https://github.com/SavinaRoja/PyUserInput) and Tkinter. For Ubuntu, this is as simple as 
 
     sudo apt-get install python-pip python-xlib python-tk  
     sudo pip install PyUserInput

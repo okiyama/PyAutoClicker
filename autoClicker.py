@@ -5,58 +5,78 @@ Author: Julian Jocque
 Date: 7/1/14
 """
 from pymouse import PyMouse, PyMouseEvent
-import time
+import time, random
 import pyxhook
 from threading import Thread
 
 class AutoClicker(PyMouseEvent):
-    def __init__(self, givenDelay = 250, shouldRandomize = False, givenRandomRange = 0, toggleClick = False, holdClick = True, keyToUse = "a"):
+    def __init__(self, clicksPerSecond = 5, randomizeRange = 0, toggleClick = False, holdClick = True, keyToUse = "a"):
         PyMouseEvent.__init__(self)
         self.isClicking = False
-        self.clickDelay = givenDelay
-        self.shouldRandomizeDelay = shouldRandomize
-        self.randomizeRange = givenRandomRange
+        self.clicksPerSecond = clicksPerSecond
+        self.randomizeRange = randomizeRange
         self.mouse = PyMouse()
         self.toggleClick = toggleClick
         self.holdClick = holdClick
         self.keyToUse = keyToUse
+        self.initHookManager()
 
-    def autoClick(self, hookEvent = None):
+    def initHookManager(self):
         """
-        Does the clicking. Waits the given delay (in ms) between clicks.
+        Initializes the HookManager, which the autoclicker uses to get key information globally.
+        After this is called, self.hm refers to the HookManaer that was initialized.
         """
-        if hookEvent.Key == self.keyToUse and not self.isClicking:
-            Thread(target = self.threadedAutoClick, args=(hookEvent,)).start()
+        self.hm = pyxhook.HookManager()
+        self.hm.HookKeyboard()
+        self.hm.KeyDown = self.keyDownHandler
+        self.hm.KeyUp = self.keyUpHandler
+        self.hm.start()
+
+    def keyDownHandler(self, hookEvent = None):
+        """
+        Begins the clicking inside of a thread. 
+        """
+        if hookEvent.Key == self.keyToUse:
+            if not self.isClicking:
+                Thread(target = self.threadedAutoClick, args=(hookEvent,)).start()
+            elif self.toggleClick:
+                self.stopClicking()
    
-    def threadedAutoClick(self, hookEvent):
+    def threadedAutoClick(self, hookEvent = None):
         """
         Auto clicks inside a thread so that it can be exited by other functions.
         """
+        print("Starting auto clicking")
         self.isClicking = True
         while(self.isClicking):
             x,y = self.mouse.position()
             self.mouse.click(x,y,1)
-            time.sleep(self.clickDelay / 1000.0) #To convert from ms to seconds
+            sleepTime = (1.0 / self.clicksPerSecond) #For clicks per second
+            if self.randomizeRange != 0.0: #Slight efficiency boost is useful
+                sleepTime +=  random.uniform(0.0, (self.randomizeRange / 1000.0)) #For the random delay
+            time.sleep(sleepTime)
 
-    def stopClicking(self, hookEvent = None):
+    def keyUpHandler(self, hookEvent = None):
         """
-        Makes the clicking stop. 
+        Handles any key being released. 
         """
+        if hookEvent.Key == self.keyToUse and self.holdClick:
+            self.stopClicking()
+
+    def stopClicking(self):
+        """
+        Stop the clicking
+        """
+        print("Stopping clicking")
         self.isClicking = False
 
-    def click(self, x, y, button, press):
+    def cleanUp(self):
         """
-        Makes it so we exit on any button click
+        Cleans up the AutoClicker. 
+        You *must* call this when you want to any program which uses this class to end!
         """
-        print("Just got a button press")
-        if press:
-            self.isClicking = False
-
-def printOpeningMessage():
-    """
-    Prints how to use the program
-    """
-    print("This is a simple autoclicker. To make the clicking stop, press any mouse button.\n")
+        self.hm.cancel()
+        self.stopClicking()
 
 def getFloat(message):
     """
@@ -65,31 +85,19 @@ def getFloat(message):
     toRet = -1.0
     while(toRet < 0.0):
         try:
-            toRet = float(raw_input(message))
+            toRet = float(raw_input(message + " "))
         except ValueError:
-            toRet = float(raw_input("Please enter a number greater than 0."))
+            toRet = float(raw_input("Please enter a number greater than 0. "))
     return toRet
 
 def main():
-    printOpeningMessage()
-    initialDelay = getFloat("How long would you like the delay before starting the clicking so you can change windows?(in seconds) ")
-    mouseDelay = getFloat("How much delay would you like between clicks?(in milliseconds) ")
-    clicker = AutoClicker(givenDelay=mouseDelay)
-    time.sleep(initialDelay)
-    clicker.autoClick()
-    clicker.run()
-
-def main2():
-    mouseDelay = getFloat("How much delay would you like between clicks?(in milliseconds) ")
-    clicker = AutoClicker(givenDelay=mouseDelay)
-    hm = pyxhook.HookManager()
-    hm.HookKeyboard()
-    hm.KeyDown = clicker.autoClick
-    hm.KeyUp = clicker.stopClicking
-    hm.start()
-    time.sleep(10)
-    hm.cancel()
+    givenCPS = getFloat("How many clicks per second would you like?")
+    givenRandomDelay = getFloat("How much random delay would you like between clicks? \nThis will randomly delay anywhere between 0 and your given number of milliseconds between clicks. 0 is no delay.")
+    #TODO Would be nice to ask if they want toggle click or hold click
+    #TODO Should also ask what key to use
+    clicker = AutoClicker(clicksPerSecond = givenCPS, toggleClick = False, holdClick = True, randomizeRange = givenRandomDelay)
+    time.sleep(20)
+    clicker.cleanUp()
 
 if __name__ == "__main__":
-    #main()
-    main2()
+    main()
