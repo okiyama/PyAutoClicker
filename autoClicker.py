@@ -10,11 +10,17 @@ import pyxhook
 from threading import Thread
 
 class AutoClicker(PyMouseEvent):
-    def __init__(self, clicksPerSecond = 5, randomizeRange = 0, toggleClick = False, holdClick = True, keyToUse = "a"):
+    def __init__(self, clicksPerSecond = 5, randomizeRange = 0, toggleClick = False, holdClick = True, keyToUse = "Shift_L"):
         PyMouseEvent.__init__(self)
         self.isClicking = False
-        self.clicksPerSecond = clicksPerSecond
-        self.randomizeRange = randomizeRange
+        if clicksPerSecond > 0:
+            self.clicksPerSecond = clicksPerSecond
+        else:
+            raise ValueError("Clicks per second must be greater than 0.")
+        if randomizeRange >= 0:
+            self.randomizeRange = randomizeRange
+        else:
+            raise ValueError("Random range must be greater than or equal to 0.")
         self.mouse = PyMouse()
         self.toggleClick = toggleClick
         self.holdClick = holdClick
@@ -46,7 +52,6 @@ class AutoClicker(PyMouseEvent):
         """
         Auto clicks inside a thread so that it can be exited by other functions.
         """
-        print("Starting auto clicking")
         self.isClicking = True
         while(self.isClicking):
             x,y = self.mouse.position()
@@ -67,7 +72,6 @@ class AutoClicker(PyMouseEvent):
         """
         Stop the clicking
         """
-        print("Stopping clicking")
         self.isClicking = False
 
     def cleanUp(self):
