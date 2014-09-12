@@ -20,7 +20,7 @@ Then you should be all set. You just run autoClickGUI.py to use the program.
 At the moment, you use Left Shift to engage the clicking. This will be customizable in the future.  
 **Clicks Per Second** is how quickly you want it to click. For web-based games, do not go above 250.  
 **MS of Random Delay** places some randomness in the clicks. It will delay a random amount between 0 and the given number of milliseconds between each click. This is useful for avoiding anti-cheat system in online games.  
-**Clicking Method** is either Toggle or Hold. With Hold, you hold down the button to keep clicking. With Toggle, you press the button once to start and once to stop.
+**Clicking Method** is either Toggle or Hold. With Hold, you hold down the button to keep clicking. With Toggle, you press the button once to start and once to stop.  
 **Apply Changes** updates the program.
 
 
